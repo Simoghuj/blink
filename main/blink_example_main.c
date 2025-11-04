@@ -20,7 +20,13 @@
 #include "nvs_flash.h"
 #include "esp_netif_sntp.h"
 #include "esp_sntp.h"
+#include "u8g2_esp32_hal.h"
 
+// SDA - GPIO21
+#define PIN_SDA 5
+
+// SCL - GPIO22
+#define PIN_SCL 6
 // MAM - PROJECT
 
 #if !CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
@@ -211,6 +217,17 @@ static void uart_receive(void *arg)
             {
                 printf("Temperature value: %.02f ℃\r\n", temp_sensor(NULL));
             }
+            if (strcmp(str, "UNIXTIME") == 0)
+            {
+                time_t now;
+                char strftime_buf[64];
+                struct tm timeinfo;
+                time(&now);
+                localtime_r(&now, &timeinfo);
+                strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+                ESP_LOGI(TAG, "The current date/time in Shanghai is: %s", strftime_buf);
+                printf("UNIXTIME: %.02f ℃\r\n", temp_sensor(NULL));
+            }
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
@@ -231,6 +248,10 @@ void blink_led(void *pvParameters)
 void NTP_time(void *args)
 {
 
+    time_t now;
+    time(&now);
+    setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
+    tzset();
     static bool wifiConectedPrev = false;
     while (true)
     {
@@ -254,12 +275,52 @@ void NTP_time(void *args)
     }
 }
 
+void task_test_SSD1306i2c(void *ignore)
+{
+    u8g2_esp32_hal_t u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
+    u8g2_esp32_hal.bus.i2c.sda = PIN_SDA;
+    u8g2_esp32_hal.bus.i2c.scl = PIN_SCL;
+    u8g2_esp32_hal_init(u8g2_esp32_hal);
+
+    u8g2_t u8g2; // a structure which will contain all the data for one display
+    u8g2_Setup_ssd1306_i2c_128x32_univision_f(
+        &u8g2, U8G2_R0,
+        // u8x8_byte_sw_i2c,
+        u8g2_esp32_i2c_byte_cb,
+        u8g2_esp32_gpio_and_delay_cb); // init u8g2 structure
+    u8x8_SetI2CAddress(&u8g2.u8x8, 0x78);
+
+    ESP_LOGI(TAG, "u8g2_InitDisplay");
+    u8g2_InitDisplay(&u8g2); // send init sequence to the display, display is in
+                             // sleep mode after this,
+
+    ESP_LOGI(TAG, "u8g2_SetPowerSave");
+    u8g2_SetPowerSave(&u8g2, 0); // wake up display
+    ESP_LOGI(TAG, "u8g2_ClearBuffer");
+    u8g2_ClearBuffer(&u8g2);
+    ESP_LOGI(TAG, "u8g2_DrawBox");
+    u8g2_DrawBox(&u8g2, 0, 26, 80, 6);
+    u8g2_DrawFrame(&u8g2, 0, 26, 100, 6);
+
+    ESP_LOGI(TAG, "u8g2_SetFont");
+    u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
+    ESP_LOGI(TAG, "u8g2_DrawStr");
+    u8g2_DrawStr(&u8g2, 2, 17, "Hi nkolban!");
+    ESP_LOGI(TAG, "u8g2_SendBuffer");
+    u8g2_SendBuffer(&u8g2);
+
+    ESP_LOGI(TAG, "All done!");
+
+    vTaskDelete(NULL);
+}
+
 void app_main(void)
 {
     xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
     xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
     wifiInit();
     xTaskCreate(NTP_time, "TIME", 4096, NULL, 10, NULL);
+    xTaskCreate(task_test_SSD1306i2c, "OLED", 4096, NULL, 10, NULL);
 
     ESP_LOGI(TAG, "Temperature value %.02f ℃", temp_sensor(NULL));
 
