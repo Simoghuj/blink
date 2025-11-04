@@ -1,0 +1,34 @@
+Command: cmake -G Ninja -DPYTHON_DEPS_CHECKED=1 -DPYTHON=C:\Users\SimecPC\.espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe -DESP_PLATFORM=1 -DSDKCONFIG='\\HFK_Cloud\home\SCHOOL\BPC_3\MAM\blink\sdkconfig' -DCCACHE_ENABLE=1 \\HFK_Cloud\home\SCHOOL\BPC_3\MAM\blink
+CMake Error at C:/Users/SimecPC/.espressif/tools/cmake/3.30.2/share/cmake-3.30/Modules/CMakeTestCCompiler.cmake:67 (message):
+  The C compiler
+
+    "C:/Users/SimecPC/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-gcc.exe"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: '//HFK_Cloud/home/SCHOOL/BPC_3/MAM/blink/build/CMakeFiles/CMakeScratch/TryCompile-b53raw'
+    
+    Run Build Command(s): C:/Users/SimecPC/.espressif/tools/ninja/1.12.1/ninja.exe -v cmTC_30ff5
+    [1/2] C:\Users\SimecPC\.espressif\tools\riscv32-esp-elf\esp-14.2.0_20241119\riscv32-esp-elf\bin\riscv32-esp-elf-gcc.exe   -march=rv32imc_zicsr_zifencei -o CMakeFiles/cmTC_30ff5.dir/testCCompiler.c.obj -c //HFK_Cloud/home/SCHOOL/BPC_3/MAM/blink/build/CMakeFiles/CMakeScratch/TryCompile-b53raw/testCCompiler.c
+    [2/2] C:\WINDOWS\system32\cmd.exe /C "cd . && C:\Users\SimecPC\.espressif\tools\riscv32-esp-elf\esp-14.2.0_20241119\riscv32-esp-elf\bin\riscv32-esp-elf-gcc.exe -march=rv32imc_zicsr_zifencei -nostartfiles -march=rv32imc_zicsr_zifencei CMakeFiles/cmTC_30ff5.dir/testCCompiler.c.obj -o cmTC_30ff5   && cd ."
+    FAILED: cmTC_30ff5 
+    C:\WINDOWS\system32\cmd.exe /C "cd . && C:\Users\SimecPC\.espressif\tools\riscv32-esp-elf\esp-14.2.0_20241119\riscv32-esp-elf\bin\riscv32-esp-elf-gcc.exe -march=rv32imc_zicsr_zifencei -nostartfiles -march=rv32imc_zicsr_zifencei CMakeFiles/cmTC_30ff5.dir/testCCompiler.c.obj -o cmTC_30ff5   && cd ."
+    '\\HFK_Cloud\home\SCHOOL\BPC_3\MAM\blink\build\CMakeFiles\CMakeScratch\TryCompile-b53raw'
+    CMD.EXE was started with the above path as the current directory.
+    UNC paths are not supported.  Defaulting to Windows directory.
+    C:/Users/SimecPC/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/../lib/gcc/riscv32-esp-elf/14.2.0/../../../../riscv32-esp-elf/bin/ld.exe: cannot open output file cmTC_30ff5: Permission denied
+    collect2.exe: error: ld returned 1 exit status
+    ninja: build stopped: subcommand failed.
+    
+    
+
+  
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  C:/Users/SimecPC/esp/v5.5.1/esp-idf/tools/cmake/project.cmake:589 (__project)
+  CMakeLists.txt:6 (project)
+
+
