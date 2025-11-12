@@ -197,10 +197,10 @@ void temp_sensor(void *params)
     while (true)
     {
         ESP_ERROR_CHECK(temperature_sensor_get_celsius(temp_sensor, &tsens_value));
-        temperaturet s = {
+        temperature_t s = {
             .temp_c = tsens_value,
             .temp_f = (tsens_value * (9.0 / 5.0)) + 32.0};
-        (xQueueSend(temp_q, &s, 0) != pdPASS);
+        xQueueSend(temp_q, &s, 0);
         vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 }
@@ -218,7 +218,7 @@ static void uart_receive(void *arg)
 
             if (strcmp(str, "TEMPERATURE") == 0)
             {
-                temp_sample_t s;
+                temperature_t s;
                 xQueueReceive(temp_q, &s, pdMS_TO_TICKS(1000));
 
                 printf("Temperature value: %.02f °C, %.02f °F \r\n", s.temp_c, s.temp_f);
@@ -337,12 +337,11 @@ void task_test_SSD1306i2c(void *ignore)
     u8g2_SetFont(&u8g2, u8g2_font_ncenB08_tr);
 
     ESP_LOGI(TAG, "u8g2_DrawStr");
+    u8g2_DrawStr(&u8g2, 2, 8, "Hi Simec!");
+    u8g2_DrawStr(&u8g2, 2, 16, "Hi Simec!");
+    u8g2_DrawStr(&u8g2, 20, 8, "Hi Simec!");
 
-    for (int i = 0; i < 4; i++)
-    {
-        u8g2_DrawStr(&u8g2, 2, 8 + 8 * i, "Hi Simec!");
-    }
-    ESP_LOGI(TAG, "u8g2_SendBuffer");
+       ESP_LOGI(TAG, "u8g2_SendBuffer");
     u8g2_SendBuffer(&u8g2);
 
     ESP_LOGI(TAG, "All done!");
@@ -358,6 +357,8 @@ void logLevelSet(void *a)
 
 void app_main(void)
 {
+
+    temp_q = xQueueCreate(2, sizeof(temperature_t));
     logLevelSet(NULL);
     xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
     xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
