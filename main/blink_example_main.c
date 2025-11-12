@@ -161,8 +161,6 @@ void wifiInit()
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "wifi_init_sta finished.");
-
     /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
      * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
     EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
@@ -175,12 +173,12 @@ void wifiInit()
      * happened. */
     if (bits & WIFI_CONNECTED_BIT)
     {
-        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
+        ESP_LOGI(TAG, "connected to ap SSID:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
     }
     else if (bits & WIFI_FAIL_BIT)
     {
-        ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
+        ESP_LOGI(TAG, "Failed to connect to SSID:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
     }
     else
@@ -245,6 +243,12 @@ void blink_led(void *pvParameters)
     }
 }
 
+void Wifi_station(void *arg)
+{
+    wifiInit();
+    vTaskDelete(NULL);
+}
+
 void NTP_time(void *args)
 {
 
@@ -300,13 +304,14 @@ void task_test_SSD1306i2c(void *ignore)
     ESP_LOGI(TAG, "u8g2_ClearBuffer");
     u8g2_ClearBuffer(&u8g2);
     ESP_LOGI(TAG, "u8g2_DrawBox");
-    u8g2_DrawBox(&u8g2, 0, 26, 80, 6);
-    u8g2_DrawFrame(&u8g2, 0, 26, 100, 6);
+    u8g2_DrawBox(&u8g2, 0, 5, 10, 10);
+    u8g2_DrawFrame(&u8g2, 0, 5, 20, 10);
 
-    ESP_LOGI(TAG, "u8g2_SetFont");
-    u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
+    // ESP_LOGI(TAG, "u8g2_SetFont");
+    // u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
+
     ESP_LOGI(TAG, "u8g2_DrawStr");
-    u8g2_DrawStr(&u8g2, 2, 17, "Hi nkolban!");
+    u8g2_DrawStr(&u8g2, 2, 5, "Hi nkolban!");
     ESP_LOGI(TAG, "u8g2_SendBuffer");
     u8g2_SendBuffer(&u8g2);
 
@@ -319,15 +324,15 @@ void app_main(void)
 {
     xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
     xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
-    wifiInit();
-    xTaskCreate(NTP_time, "TIME", 4096, NULL, 10, NULL);
-    xTaskCreate(task_test_SSD1306i2c, "OLED", 4096, NULL, 10, NULL);
+    xTaskCreate(Wifi_station, "WIFI", 4096, NULL, 9, NULL);
+
+    xTaskCreate(NTP_time, "TIME", 4096, NULL, 3, NULL);
+    xTaskCreate(task_test_SSD1306i2c, "OLED", 4096, NULL, 3, NULL);
 
     ESP_LOGI(TAG, "Temperature value %.02f ℃", temp_sensor(NULL));
 
     while (1)
     {
-
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
