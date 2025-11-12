@@ -371,7 +371,7 @@ void app_main(void)
 {
 
     temp_q = xQueueCreate(2, sizeof(temperature_t));
-    temp_q = xQueueCreate(1, sizeof(temperature_t));
+    period_q = xQueueCreate(1, sizeof(temperature_t));
 
     logLevelSet(NULL);
     xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
