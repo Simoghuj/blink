@@ -1,2 +1,8 @@
 dependencies:
   espressif/led_strip: "^2.0.0"
+
+# A manually added local managed component
+  u8g2:
+    path: ../managed_components/u8g2
+  u8g2-hal-esp-idf:
+    path: ../managed_components/u8g2-hal-esp-idf
