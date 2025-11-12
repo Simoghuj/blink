@@ -265,13 +265,13 @@ void NTP_time(void *args)
     {
         if (wifiConected && !wifiConectedPrev)
         {
-            ESP_LOGI("NTP", "NTP connecting");
+            ESP_LOGI(TAG, "NTP connecting");
             esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
             esp_netif_sntp_init(&config);
 
             if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK)
             {
-                ESP_LOGE("NTP", "NTP connection failed");
+                ESP_LOGE(TAG, "NTP connection failed");
             }
             wifiConectedPrev = wifiConected;
         }
@@ -324,6 +324,12 @@ void task_test_SSD1306i2c(void *ignore)
     ESP_LOGI(TAG, "All done!");
 
     vTaskDelete(NULL);
+}
+
+void logLevelSet(void *a)
+{
+    esp_log_level_set("*", ESP_LOG_NONE);
+    esp_log_level_set(TAG, ESP_LOG_INFO);
 }
 
 void app_main(void)
