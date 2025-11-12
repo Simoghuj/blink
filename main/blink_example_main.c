@@ -21,6 +21,8 @@
 #include "esp_netif_sntp.h"
 #include "esp_sntp.h"
 #include "u8g2_esp32_hal.h"
+#include "esp_efuse.h"
+#include "esp_mac.h"
 
 // SDA - GPIO21
 #define PIN_SDA 5
