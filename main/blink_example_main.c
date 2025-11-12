@@ -240,16 +240,15 @@ static void uart_receive(void *arg)
 
                 const char *rest = str + 4;
                 long param = 0;
-                bool has_param = false;
-                if (rest[0] != '\0')
-                {
-                    char *endptr = NULL;
-                    errno = 0;
-                    param = strtol(rest, &endptr, 10);
-                }
 
                 if (strcmp(cmd, "PER:") == 0)
                 {
+                    if (rest[0] != '\0')
+                    {
+                        char *endptr = NULL;
+                        errno = 0;
+                        param = strtol(rest, &endptr, 10);
+                    }
                     ESP_LOGI(TAG, "Set period to %ld ms", (param * 100));
                 }
             }
