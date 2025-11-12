@@ -62,23 +62,16 @@ static int s_retry_num = 0;
 */
 static uint8_t s_led_state = 0;
 
-// void configure_led(void)
-// {
-//     ESP_LOGI(TAG, "Example configured to blink addressable LED!");
-//     /* LED strip initialization with the GPIO and pixels number*/
-//     led_strip_config_t strip_config = {
-//         .strip_gpio_num = BLINK_GPIO,
-//         .max_leds = 1, // at least one LED on board
-//     };
-//     led_strip_rmt_config_t rmt_config = {
-//         .resolution_hz = 10 * 1000 * 1000, // 10MHz
-//     };
-//     ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
-//     /* Set all LED off to clear all pixels */
-//     led_strip_clear(led_strip);
-// }
+typedef struct
+{
+    float temp_c;
+    float temp_f;
+} temperature_t;
 
-static void configure_led(void)
+static QueueHandle_t temp_q; // queue for temperature values;
+
+static void
+configure_led(void)
 {
     gpio_reset_pin(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -193,7 +186,7 @@ void wifiInit()
     }
 }
 
-double temp_sensor(void *params)
+void temp_sensor(void *params)
 {
     temperature_sensor_handle_t temp_sensor = NULL;
     temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 50);
@@ -201,10 +194,15 @@ double temp_sensor(void *params)
     ESP_ERROR_CHECK(temperature_sensor_enable(temp_sensor));
 
     float tsens_value;
-
-    ESP_ERROR_CHECK(temperature_sensor_get_celsius(temp_sensor, &tsens_value));
-
-    return tsens_value;
+    while (true)
+    {
+        ESP_ERROR_CHECK(temperature_sensor_get_celsius(temp_sensor, &tsens_value));
+        temperaturet s = {
+            .temp_c = tsens_value,
+            .temp_f = (tsens_value * (9.0 / 5.0)) + 32.0};
+        (xQueueSend(temp_q, &s, 0) != pdPASS);
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
 }
 
 static void uart_receive(void *arg)
@@ -220,7 +218,10 @@ static void uart_receive(void *arg)
 
             if (strcmp(str, "TEMPERATURE") == 0)
             {
-                printf("Temperature value: %.02f °C, %.02f °F \r\n", temp_sensor(NULL), (temp_sensor(NULL) * (9.0 / 5.0)) + 32.0);
+                temp_sample_t s;
+                xQueueReceive(temp_q, &s, pdMS_TO_TICKS(1000));
+
+                printf("Temperature value: %.02f °C, %.02f °F \r\n", s.temp_c, s.temp_f);
             }
             else if (strcmp(str, "UNIXTIME") == 0)
             {
@@ -362,10 +363,10 @@ void app_main(void)
     xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
     xTaskCreate(Wifi_station, "WIFI", 4096, NULL, 9, NULL);
 
+    xTaskCreate(temp_sensor, "TEMP", 4096, NULL, 1, NULL);
+
     xTaskCreate(NTP_time, "TIME", 4096, NULL, 3, NULL);
     xTaskCreate(task_test_SSD1306i2c, "OLED", 4096, NULL, 3, NULL);
-
-    ESP_LOGI(TAG, "Temperature value %.02f ℃", temp_sensor(NULL));
 
     while (1)
     {
