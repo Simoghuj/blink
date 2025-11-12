@@ -311,8 +311,8 @@ void task_test_SSD1306i2c(void *ignore)
     u8g2_DrawBox(&u8g2, 0, 5, 10, 10);
     u8g2_DrawFrame(&u8g2, 0, 5, 20, 10);
 
-    // ESP_LOGI(TAG, "u8g2_SetFont");
-    // u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
+    ESP_LOGI(TAG, "u8g2_SetFont");
+    u8g2_SetFont(&u8g2, u8g2_font_ncenB08_tr);
 
     ESP_LOGI(TAG, "u8g2_DrawStr");
     u8g2_DrawStr(&u8g2, 2, 5, "Hi nkolban!");
