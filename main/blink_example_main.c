@@ -293,6 +293,7 @@ void NTP_time(void *args)
     setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
     tzset();
     static bool wifiConectedPrev = false;
+    int cnt = 0;
     while (true)
     {
         if (wifiConected && !wifiConectedPrev)
@@ -314,6 +315,19 @@ void NTP_time(void *args)
         {
             wifiConectedPrev = wifiConected;
         }
+
+        if (cnt > 100) // every 10 s
+        {
+            cnt = 0;
+            time_t now;
+            char strftime_buf[64];
+            struct tm timeinfo;
+            time(&now);
+            localtime_r(&now, &timeinfo);
+            strftime(strftime_buf, sizeof(strftime_buf), "%Y-%m-%d %H:%M:%S", &timeinfo);
+            ESP_LOGI(TAG, "TIME_stamp: %s", strftime_buf);
+        }
+        cnt++;
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
