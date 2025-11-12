@@ -256,127 +256,128 @@ static void uart_receive(void *arg)
             vTaskDelay(100 / portTICK_PERIOD_MS);
         }
     }
+}
 
-    void blink_led(void *pvParameters)
+void blink_led(void *pvParameters)
+{
+    /* Configure the peripheral according to the LED type */
+    configure_led();
+    while (true)
     {
-        /* Configure the peripheral according to the LED type */
-        configure_led();
-        while (true)
-        {
-            gpio_set_level(BLINK_GPIO, s_led_state);
-            s_led_state = !s_led_state;
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-        }
+        gpio_set_level(BLINK_GPIO, s_led_state);
+        s_led_state = !s_led_state;
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+}
 
-    void Wifi_station(void *arg)
+void Wifi_station(void *arg)
+{
+    wifiInit();
+    while (true)
     {
-        wifiInit();
-        while (true)
-        {
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-        }
-        // vTaskDelete(NULL);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+    // vTaskDelete(NULL);
+}
 
-    void NTP_time(void *args)
+void NTP_time(void *args)
+{
+
+    time_t now;
+    time(&now);
+    setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
+    tzset();
+    static bool wifiConectedPrev = false;
+    while (true)
     {
-
-        time_t now;
-        time(&now);
-        setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
-        tzset();
-        static bool wifiConectedPrev = false;
-        while (true)
+        if (wifiConected && !wifiConectedPrev)
         {
-            if (wifiConected && !wifiConectedPrev)
+            ESP_LOGI(TAG, "NTP connecting");
+            esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+            esp_netif_sntp_init(&config);
+
+            if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK)
             {
-                ESP_LOGI(TAG, "NTP connecting");
-                esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
-                esp_netif_sntp_init(&config);
-
-                if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK)
-                {
-                    ESP_LOGE(TAG, "NTP connection failed");
-                }
-                wifiConectedPrev = wifiConected;
+                ESP_LOGE(TAG, "NTP connection failed");
             }
-            else if (!wifiConected && wifiConectedPrev)
-            {
-                wifiConectedPrev = wifiConected;
-            }
-            vTaskDelay(100 / portTICK_PERIOD_MS);
+            wifiConectedPrev = wifiConected;
         }
-    }
-
-    void task_test_SSD1306i2c(void *ignore)
-    {
-        esp_log_level_set(TAG, ESP_LOG_INFO);
-        u8g2_esp32_hal_t u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
-        u8g2_esp32_hal.bus.i2c.sda = PIN_SDA;
-        u8g2_esp32_hal.bus.i2c.scl = PIN_SCL;
-        u8g2_esp32_hal_init(u8g2_esp32_hal);
-
-        u8g2_t u8g2; // a structure which will contain all the data for one display
-        // u8g2_Setup_ssd1306_i2c_128x32_univision_f(
-        u8g2_Setup_ssd1306_i2c_72x40_er_1(
-            &u8g2, U8G2_R0,
-            // u8x8_byte_sw_i2c,
-            u8g2_esp32_i2c_byte_cb,
-            u8g2_esp32_gpio_and_delay_cb); // init u8g2 structure
-        u8x8_SetI2CAddress(&u8g2.u8x8, 0x78);
-
-        ESP_LOGI(TAG, "InitDisplay");
-        u8g2_InitDisplay(&u8g2); // send init sequence to the display, display is in
-                                 // sleep mode after this,
-
-        ESP_LOGI(TAG, "u8g2_SetPowerSave");
-        u8g2_SetPowerSave(&u8g2, 0); // wake up display
-        ESP_LOGI(TAG, "u8g2_ClearBuffer");
-
-        u8g2_ClearBuffer(&u8g2);
-        u8g2_SendBuffer(&u8g2);
-        ESP_LOGI(TAG, "u8g2_DrawBox");
-        u8g2_DrawBox(&u8g2, 10, 15, 10, 10);
-        u8g2_DrawFrame(&u8g2, 10, 15, 20, 10);
-
-        ESP_LOGI(TAG, "u8g2_SetFont");
-        u8g2_SetFont(&u8g2, u8g2_font_ncenB08_tr);
-
-        ESP_LOGI(TAG, "u8g2_DrawStr");
-
-        for (int i = 0; i < 4; i++)
+        else if (!wifiConected && wifiConectedPrev)
         {
-            u8g2_DrawStr(&u8g2, 2, 8 + 8 * i, "Hi Simec!");
+            wifiConectedPrev = wifiConected;
         }
-        ESP_LOGI(TAG, "u8g2_SendBuffer");
-        u8g2_SendBuffer(&u8g2);
-
-        ESP_LOGI(TAG, "All done!");
-
-        vTaskDelete(NULL);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
+}
 
-    void logLevelSet(void *a)
+void task_test_SSD1306i2c(void *ignore)
+{
+    esp_log_level_set(TAG, ESP_LOG_INFO);
+    u8g2_esp32_hal_t u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
+    u8g2_esp32_hal.bus.i2c.sda = PIN_SDA;
+    u8g2_esp32_hal.bus.i2c.scl = PIN_SCL;
+    u8g2_esp32_hal_init(u8g2_esp32_hal);
+
+    u8g2_t u8g2; // a structure which will contain all the data for one display
+    // u8g2_Setup_ssd1306_i2c_128x32_univision_f(
+    u8g2_Setup_ssd1306_i2c_72x40_er_1(
+        &u8g2, U8G2_R0,
+        // u8x8_byte_sw_i2c,
+        u8g2_esp32_i2c_byte_cb,
+        u8g2_esp32_gpio_and_delay_cb); // init u8g2 structure
+    u8x8_SetI2CAddress(&u8g2.u8x8, 0x78);
+
+    ESP_LOGI(TAG, "InitDisplay");
+    u8g2_InitDisplay(&u8g2); // send init sequence to the display, display is in
+                             // sleep mode after this,
+
+    ESP_LOGI(TAG, "u8g2_SetPowerSave");
+    u8g2_SetPowerSave(&u8g2, 0); // wake up display
+    ESP_LOGI(TAG, "u8g2_ClearBuffer");
+
+    u8g2_ClearBuffer(&u8g2);
+    u8g2_SendBuffer(&u8g2);
+    ESP_LOGI(TAG, "u8g2_DrawBox");
+    u8g2_DrawBox(&u8g2, 10, 15, 10, 10);
+    u8g2_DrawFrame(&u8g2, 10, 15, 20, 10);
+
+    ESP_LOGI(TAG, "u8g2_SetFont");
+    u8g2_SetFont(&u8g2, u8g2_font_ncenB08_tr);
+
+    ESP_LOGI(TAG, "u8g2_DrawStr");
+
+    for (int i = 0; i < 4; i++)
     {
-        esp_log_level_set("*", ESP_LOG_NONE);
-        esp_log_level_set(TAG, ESP_LOG_INFO);
+        u8g2_DrawStr(&u8g2, 2, 8 + 8 * i, "Hi Simec!");
     }
+    ESP_LOGI(TAG, "u8g2_SendBuffer");
+    u8g2_SendBuffer(&u8g2);
 
-    void app_main(void)
+    ESP_LOGI(TAG, "All done!");
+
+    vTaskDelete(NULL);
+}
+
+void logLevelSet(void *a)
+{
+    esp_log_level_set("*", ESP_LOG_NONE);
+    esp_log_level_set(TAG, ESP_LOG_INFO);
+}
+
+void app_main(void)
+{
+    logLevelSet(NULL);
+    xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
+    xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
+    xTaskCreate(Wifi_station, "WIFI", 4096, NULL, 9, NULL);
+
+    xTaskCreate(NTP_time, "TIME", 4096, NULL, 3, NULL);
+    xTaskCreate(task_test_SSD1306i2c, "OLED", 4096, NULL, 3, NULL);
+
+    ESP_LOGI(TAG, "Temperature value %.02f ℃", temp_sensor(NULL));
+
+    while (1)
     {
-        logLevelSet(NULL);
-        xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
-        xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
-        xTaskCreate(Wifi_station, "WIFI", 4096, NULL, 9, NULL);
-
-        xTaskCreate(NTP_time, "TIME", 4096, NULL, 3, NULL);
-        xTaskCreate(task_test_SSD1306i2c, "OLED", 4096, NULL, 3, NULL);
-
-        ESP_LOGI(TAG, "Temperature value %.02f ℃", temp_sensor(NULL));
-
-        while (1)
-        {
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+}
