@@ -230,16 +230,11 @@ static void uart_receive(void *arg)
 
                 printf("Temperature value: %.02f °C, %.02f °F \r\n", s.temp_c, s.temp_f);
             }
-            else if (strcmp(str, "UNIXTIME") == 0)
+            if (strcmp(str, "UNIXTIME") == 0)
             {
                 time_t now;
-                char strftime_buf[64];
-                struct tm timeinfo;
                 time(&now);
-                localtime_r(&now, &timeinfo);
-                strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-                ESP_LOGI(TAG, "UNIXTIME: %s", strftime_buf);
-                ESP_LOGI(TAG, "UNIXTIME: %d", now);
+                printf("UNIXTIME: %lld \r\n", now);
             }
             else if (strncmp(str, "PER:", 4) == 0)
             {
