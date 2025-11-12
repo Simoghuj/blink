@@ -69,6 +69,7 @@ typedef struct
 } temperature_t;
 
 static QueueHandle_t temp_q; // queue for temperature values;
+static QueueHandle_t period_q;
 
 static void
 configure_led(void)
@@ -244,6 +245,8 @@ static void uart_receive(void *arg)
                     param = strtol(rest, &endptr, 10);
                 }
                 ESP_LOGI(TAG, "Set period to %ld ms", (param * 100));
+                TickType_t period = param * 100 / portTICK_PERIOD_MS;
+                xQueueOverwrite(period_q, &period);
             }
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -254,11 +257,20 @@ void blink_led(void *pvParameters)
 {
     /* Configure the peripheral according to the LED type */
     configure_led();
+    TickType_t period = 1000 / portTICK_PERIOD_MS;
     while (true)
     {
+        TickType_t new_period;
+        if (xQueueReceive(period_q, &new_period, 0) == pdPASS)
+        {
+            if (new_period != period)
+            {
+                period = new_period;
+            }
+        }
         gpio_set_level(BLINK_GPIO, s_led_state);
         s_led_state = !s_led_state;
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(period);
     }
 }
 
@@ -341,7 +353,7 @@ void task_test_SSD1306i2c(void *ignore)
     u8g2_DrawStr(&u8g2, 2, 16, "Hi Simec!");
     u8g2_DrawStr(&u8g2, 20, 8, "Hi Simec!");
 
-       ESP_LOGI(TAG, "u8g2_SendBuffer");
+    ESP_LOGI(TAG, "u8g2_SendBuffer");
     u8g2_SendBuffer(&u8g2);
 
     ESP_LOGI(TAG, "All done!");
@@ -359,6 +371,8 @@ void app_main(void)
 {
 
     temp_q = xQueueCreate(2, sizeof(temperature_t));
+    temp_q = xQueueCreate(1, sizeof(temperature_t));
+
     logLevelSet(NULL);
     xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
     xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
