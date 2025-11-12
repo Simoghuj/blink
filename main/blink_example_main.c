@@ -32,6 +32,12 @@
 #if !CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
 #error "Console must be USB Serial/JTAG. Set: Component config -> ESP System Settings -> Channel for console output = USB Serial/JTAG."
 #endif
+#if !CONFIG_LOG_DEFAULT_LEVEL_NONE
+#error "default level of log must be NONE. Set: Component config -> Log output -> Default log verbosity = NONE."
+#endif
+#if !CONFIG_LOG_MAXIMUM_LEVEL_VERBOSE
+#error "MAX_level of log must be VERBOSE. Set: Component config -> Log output -> Default log verbosity = VERBOSE."
+#endif
 
 #define BLINK_GPIO 8
 
