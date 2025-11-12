@@ -210,6 +210,12 @@ static void uart_receive(void *arg)
 {
     // pro ESP32C3 je potreba zapnout USB Serial JTAG v menuconfig pro console output
     char str[64];
+
+    uint8_t mac[6];
+    esp_efuse_mac_get_default(mac); // Read the base MAC address from efuse
+    printf("Chip unique ID: %02X:%02X:%02X:%02X:%02X:%02X \r\n",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
     while (true)
     {
         int result = scanf("%63s", str); // read one whitespace-separated word, max 63 chars + '\0'
