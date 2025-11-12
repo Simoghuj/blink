@@ -246,7 +246,11 @@ void blink_led(void *pvParameters)
 void Wifi_station(void *arg)
 {
     wifiInit();
-    vTaskDelete(NULL);
+    while (true)
+    {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+    // vTaskDelete(NULL);
 }
 
 void NTP_time(void *args)
