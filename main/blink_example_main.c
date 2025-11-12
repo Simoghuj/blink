@@ -98,13 +98,13 @@ static void event_handler(void *arg, esp_event_base_t event_base,
         {
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
         }
-        ESP_LOGI(TAG, "connect to the AP fail");
+        ESP_LOGW(TAG, "connect to the AP fail");
     }
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
     {
         wifiConected = true;
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        ESP_LOGI(TAG, "IP: " IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
@@ -296,13 +296,16 @@ void NTP_time(void *args)
     {
         if (wifiConected && !wifiConectedPrev)
         {
-            ESP_LOGI(TAG, "NTP connecting");
             esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
             esp_netif_sntp_init(&config);
 
             if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK)
             {
-                ESP_LOGE(TAG, "NTP connection failed");
+                ESP_LOGW(TAG, "NTP connection failed");
+            }
+            else
+            {
+                ESP_LOGI(TAG, "NTP connected");
             }
             wifiConectedPrev = wifiConected;
         }
@@ -335,28 +338,15 @@ void task_test_SSD1306i2c(void *ignore)
     u8g2_InitDisplay(&u8g2); // send init sequence to the display, display is in
                              // sleep mode after this,
 
-    ESP_LOGI(TAG, "u8g2_SetPowerSave");
     u8g2_SetPowerSave(&u8g2, 0); // wake up display
-    ESP_LOGI(TAG, "u8g2_ClearBuffer");
-
     u8g2_ClearBuffer(&u8g2);
-    u8g2_SendBuffer(&u8g2);
-    ESP_LOGI(TAG, "u8g2_DrawBox");
-    u8g2_DrawBox(&u8g2, 10, 15, 10, 10);
-    u8g2_DrawFrame(&u8g2, 10, 15, 20, 10);
 
-    ESP_LOGI(TAG, "u8g2_SetFont");
     u8g2_SetFont(&u8g2, u8g2_font_ncenB08_tr);
 
-    ESP_LOGI(TAG, "u8g2_DrawStr");
     u8g2_DrawStr(&u8g2, 2, 8, "Hi Simec!");
     u8g2_DrawStr(&u8g2, 2, 16, "Hi Simec!");
     u8g2_DrawStr(&u8g2, 20, 8, "Hi Simec!");
-
-    ESP_LOGI(TAG, "u8g2_SendBuffer");
     u8g2_SendBuffer(&u8g2);
-
-    ESP_LOGI(TAG, "All done!");
 
     vTaskDelete(NULL);
 }
