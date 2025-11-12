@@ -317,7 +317,11 @@ void task_test_SSD1306i2c(void *ignore)
     u8g2_SetFont(&u8g2, u8g2_font_ncenB08_tr);
 
     ESP_LOGI(TAG, "u8g2_DrawStr");
-    u8g2_DrawStr(&u8g2, 2, 8, "Hi Simec!");
+
+    for (int i = 0; i < 4; i++)
+    {
+        u8g2_DrawStr(&u8g2, 2, 8 + 8 * i, "Hi Simec!");
+    }
     ESP_LOGI(TAG, "u8g2_SendBuffer");
     u8g2_SendBuffer(&u8g2);
 
