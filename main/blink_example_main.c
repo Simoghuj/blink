@@ -224,11 +224,11 @@ static void uart_receive(void *arg)
 
                 printf("Temperature value: %.02f °C, %.02f °F \r\n", s.temp_c, s.temp_f);
             }
-            else if (strcmp(str, "UNIXTIME") == 0)
+            if (strcmp(str, "UNIXTIME") == 0)
             {
                 time_t now;
                 time(&now);
-                ESP_LOGI(TAG, "UNIXTIME: %lld", now);
+                printf("UNIXTIME: %lld \r\n", now);
             }
             else if (strncmp(str, "PER:", 4) == 0)
             {
