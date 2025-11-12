@@ -285,6 +285,7 @@ void NTP_time(void *args)
 
 void task_test_SSD1306i2c(void *ignore)
 {
+    esp_log_level_set(TAG, ESP_LOG_INFO);
     u8g2_esp32_hal_t u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
     u8g2_esp32_hal.bus.i2c.sda = PIN_SDA;
     u8g2_esp32_hal.bus.i2c.scl = PIN_SCL;
