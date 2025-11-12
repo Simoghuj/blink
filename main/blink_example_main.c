@@ -338,7 +338,7 @@ void logLevelSet(void *a)
 
 void app_main(void)
 {
-    logLevelSet();
+    logLevelSet(NULL);
     xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
     xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
     xTaskCreate(Wifi_station, "WIFI", 4096, NULL, 9, NULL);
