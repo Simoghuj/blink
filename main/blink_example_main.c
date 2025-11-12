@@ -220,7 +220,7 @@ static void uart_receive(void *arg)
 
             if (strcmp(str, "TEMPERATURE") == 0)
             {
-                printf("Temperature value: %.02f ℃\r\n", temp_sensor(NULL));
+                printf("Temperature value: %.02f °C, %.02f °F \r\n", temp_sensor(NULL), (temp_sensor(NULL) * (9.0 / 5.0)) + 32.0);
             }
             else if (strcmp(str, "UNIXTIME") == 0)
             {
@@ -232,25 +232,17 @@ static void uart_receive(void *arg)
                 strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
                 ESP_LOGI(TAG, "UNIXTIME: %s", strftime_buf);
             }
-            else
+            else if (strncmp(cmd, "PER:", 4) == 0)
             {
-                char cmd[5] = {0};
-                strncpy(cmd, str, 4);
-                cmd[4] = '\0';
-
-                const char *rest = str + 4;
                 long param = 0;
-
-                if (strcmp(cmd, "PER:") == 0)
+                const char *rest = str + 4;
+                if (rest[0] != '\0')
                 {
-                    if (rest[0] != '\0')
-                    {
-                        char *endptr = NULL;
-                        errno = 0;
-                        param = strtol(rest, &endptr, 10);
-                    }
-                    ESP_LOGI(TAG, "Set period to %ld ms", (param * 100));
+                    char *endptr = NULL;
+                    errno = 0;
+                    param = strtol(rest, &endptr, 10);
                 }
+                ESP_LOGI(TAG, "Set period to %ld ms", (param * 100));
             }
             vTaskDelay(100 / portTICK_PERIOD_MS);
         }
