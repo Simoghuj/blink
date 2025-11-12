@@ -232,7 +232,7 @@ static void uart_receive(void *arg)
                 strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
                 ESP_LOGI(TAG, "UNIXTIME: %s", strftime_buf);
             }
-            else if (strncmp(cmd, "PER:", 4) == 0)
+            else if (strncmp(str, "PER:", 4) == 0)
             {
                 long param = 0;
                 const char *rest = str + 4;
@@ -244,8 +244,8 @@ static void uart_receive(void *arg)
                 }
                 ESP_LOGI(TAG, "Set period to %ld ms", (param * 100));
             }
-            vTaskDelay(100 / portTICK_PERIOD_MS);
         }
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 
