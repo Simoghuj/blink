@@ -227,12 +227,7 @@ static void uart_receive(void *arg)
             else if (strcmp(str, "UNIXTIME") == 0)
             {
                 time_t now;
-                char strftime_buf[64];
-                struct tm timeinfo;
                 time(&now);
-                localtime_r(&now, &timeinfo);
-                strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-                ESP_LOGI(TAG, "UNIXTIME: %s", strftime_buf);
                 ESP_LOGI(TAG, "UNIXTIME: %lld", now);
             }
             else if (strncmp(str, "PER:", 4) == 0)
