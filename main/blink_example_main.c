@@ -174,12 +174,12 @@ void wifiInit()
     if (bits & WIFI_CONNECTED_BIT)
     {
         ESP_LOGI(TAG, "connected to ap SSID:%s",
-                 EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+                 EXAMPLE_ESP_WIFI_SSID);
     }
     else if (bits & WIFI_FAIL_BIT)
     {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s",
-                 EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+                 EXAMPLE_ESP_WIFI_SSID);
     }
     else
     {
@@ -328,8 +328,8 @@ void app_main(void)
 {
     xTaskCreate(blink_led, "LED", 2048, NULL, 1, NULL);      // LED blinking task
     xTaskCreate(uart_receive, "UART", 4096, NULL, 10, NULL); // task for receiving the string from PC using USB
-    // xTaskCreate(Wifi_station, "WIFI", 4096, NULL, 9, NULL);
-    wifiInit();
+    xTaskCreate(Wifi_station, "WIFI", 4096, NULL, 9, NULL);
+
     xTaskCreate(NTP_time, "TIME", 4096, NULL, 3, NULL);
     xTaskCreate(task_test_SSD1306i2c, "OLED", 4096, NULL, 3, NULL);
 
